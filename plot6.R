@@ -8,6 +8,8 @@
 
 library(dplyr)
 library(ggplot2)
+library(gridExtra)
+library(scales)
 
 # This first line will likely take a few seconds. Be patient!
 NEI <- readRDS("summarySCC_PM25.rds")
@@ -29,16 +31,21 @@ cityMotorVehicleEmissions$fips <- factor(cityMotorVehicleEmissions$fips,labels=c
 yearlyEmissions <- cityMotorVehicleEmissions %>% group_by(year,fips) %>% summarize("Emissions" = sum(Emissions))
 # Now scale them to the 1999 values, to compare relative change
 yearlyEmissionsPercent <- ungroup(yearlyEmissions) %>% group_by(fips) %>% mutate(Emissions = Emissions/first(Emissions))
-
-png("plot6.png")
-p = ggplot(data = yearlyEmissionsPercent,aes(year,Emissions,group=yearlyEmissionsPercent$fips,color=yearlyEmissionsPercent$fips))+
+png("plot6.png",width=1000,height=480)
+absolutePlot = ggplot(data = yearlyEmissions,aes(year,Emissions,group=yearlyEmissions$fips,color=yearlyEmissions$fips))+
   geom_point(size=4)+
+  geom_line()+
+  xlab("")+
+  ylab(expression("Tons of PM"[2.5]))+
+  ggtitle(expression(atop("PM"[2.5]*" Emissions from Motor Vehicles by Year", atop(italic("Total Yearly Emissions Between Cities"), ""))))+
+  theme(legend.title=element_blank())
+percentPlot = ggplot(data = yearlyEmissionsPercent,aes(year,Emissions,group=yearlyEmissionsPercent$fips,color=yearlyEmissionsPercent$fips,fill=yearlyEmissionsPercent$fips))+
+  geom_point(size=4)+
+  geom_line()+
   xlab("")+
   ylab(expression("Percentage PM"[2.5]))+
   ggtitle(expression(atop("PM"[2.5]*" Emissions from Motor Vehicles by Year", atop(italic("Percentage of Emissions Relative to 1999 Measurements"), ""))))+
   theme(legend.title=element_blank())+
-  scale_y_continuous(labels=percent)+
-  stat_smooth(method="lm", se=FALSE)
-  
-print(p)
+  scale_y_continuous(labels=percent,limits=c(0,1))
+grid.arrange(absolutePlot,percentPlot,ncol=2)
 dev.off()

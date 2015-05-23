@@ -19,10 +19,10 @@ yearlyBCEmissions <- baltimoreCityEmissions %>% group_by(year,type) %>% summariz
 png("plot3.png")
 p = ggplot(data = yearlyBCEmissions,aes(year,Emissions,colour=yearlyBCEmissions$type))+
   geom_point(size=4)+
+  geom_line()+
   xlab("")+
   ylab(expression("Tons of PM"[2.5]))+
   ggtitle(expression("Baltimore City PM"[2.5]*" Emissions by Year"))+
-  theme(legend.title=element_blank())+
-  stat_smooth(method="lm", se=FALSE)
+  theme(legend.title=element_blank())
 print(p)
 dev.off()
